@@ -29,8 +29,6 @@ pub fn main() !void {
         }
     }
 
-    try stdout.print("Logs from your program will appear here!", .{});
-
     const address = try net.Address.resolveIp("127.0.0.1", 6379);
 
     var listener = try address.listen(.{
@@ -107,10 +105,6 @@ fn handle_client(
                     .SET => try execute_set_command(arrays.elems, &map, client),
                     .CONFIG => try execute_config_command(arrays.elems, client, config),
                     .KEYS => {
-                        // if (rdb_map == null) {
-                        //     return;
-                        // }
-
                         const map_count = rdb_map.*.?.count();
                         var iter = rdb_map.*.?.iterator();
                         var key_buf = std.ArrayList(u8).init(allocator.*);
@@ -164,8 +158,6 @@ fn execute_config_command(elems: []DataItem, client: net.Server.Connection, conf
     _ = method;
     const field = elems[2].bulk_string.value;
 
-    // std.debug.print("\nmethod: {s}\tfield: {s}\n", .{ method, field });
-
     if (std.mem.eql(u8, field, "dir")) {
         _ = try client.stream.writer().print(
             "*2\r\n$3\r\ndir\r\n${d}\r\n{s}\r\n",
@@ -206,15 +198,11 @@ fn execute_get_command(
     rdb_map: *?std.StringHashMap([]const u8),
 ) !void {
     const key = elems[1].bulk_string.value;
-    // const map_value: ?MapValue = map.*.get(key);
 
     var value: ?[]const u8 = undefined;
     if (rdb_map.* != null) {
         value = rdb_map.*.?.get(key);
     } else {
-        // _ = map;
-        // _ = try client.stream.write("$-1\r\n");
-        // return;
         const local_value = map.*.get(key).?;
 
         const now = std.time.milliTimestamp();
@@ -241,16 +229,4 @@ fn execute_get_command(
         "${d}\r\n{s}\r\n",
         .{ value.?.len, value.? },
     );
-
-    // const now = std.time.milliTimestamp();
-    // const add_time = map_value.?.add_time;
-    // const px = map_value.?.px;
-    // if (px == null or now < (add_time + px.?)) {
-    //     _ = try client.stream.writer().print(
-    //         "${d}\r\n{s}\r\n",
-    //         .{ map_value.?.value.len, map_value.?.value },
-    //     );
-    // } else {
-    //     _ = try client.stream.write("$-1\r\n");
-    // }
 }

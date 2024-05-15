@@ -58,7 +58,6 @@ test "Test parse arrays" {
         try std.testing.expectEqual(parser.DataArrays, @TypeOf(res));
         try std.testing.expectEqual(exp[1], res.size);
         for (exp[2], res.elems) |exp_elem, elem| {
-            // std.debug.print("\nexp >> {?}\nelem >> {?}\n", .{ exp_elem, elem });
             try std.testing.expectEqualStrings(exp_elem.bulk_string.value, elem.bulk_string.value);
             try std.testing.expectEqual(exp_elem.bulk_string.length, elem.bulk_string.length);
         }
